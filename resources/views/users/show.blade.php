@@ -14,7 +14,7 @@
             </div>
         </aside>
         <div class="col-sm-8">
-            <ul class="nav nav-tabs nav-justified mb-3">
+            <ul class="nav nav-tabs nav-justified mb-4">
                 {{-- ユーザ詳細タブ --}}
                 <li class="nav-item">
                     <a href="{{ route('users.show', ['user' => $user->id]) }}" class="nav-link {{ Request::routeIs('users.show') ? 'active' : '' }}">
@@ -26,6 +26,8 @@
                 <li class="nav-item"><a href="#" class="nav-link">Followings</a></li>
                 {{-- フォロワー一覧タブ --}}
                 <li class="nav-item"><a href="#" class="nav-link">Followers</a></li>
+                {{-- お気に入り一覧タブ --}}
+                <li class="nav-item"><a href="#" class="nav-link">Favorite</a></li>
             </ul>
             @if (Auth::id() == $user->id)
                 {{-- 投稿フォーム --}}
