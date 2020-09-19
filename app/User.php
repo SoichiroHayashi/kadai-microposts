@@ -48,7 +48,7 @@ class User extends Authenticatable
      */
     public function loadRelationshipCounts()
     {
-        $this->loadCount(['microposts', 'followings', 'followers']);
+        $this->loadCount(['microposts', 'followings', 'followers', 'favoritings', 'favoriters']);
     }
     /**
      * このユーザがフォロー中のユーザ。（ Userモデルとの関係を定義）
@@ -133,5 +133,86 @@ class User extends Authenticatable
         $userIds[] = $this->id;
         // それらのユーザが所有する投稿に絞り込む
         return Micropost::whereIn('user_id', $userIds);
+    }
+    
+    
+    /**
+     * 
+     * お気に入り機能追加
+     * 
+     */
+     
+    /**
+     * このユーザがフォロー中のユーザ。（ Userモデルとの関係を定義）
+     */
+    public function favoritings()
+    {
+        return $this->belongsToMany(Micropost::class, 'user_favorite', 'user_id', 'favorite_id')->withTimestamps();
+    }
+
+    /**
+     * このユーザをフォロー中のユーザ。（ Userモデルとの関係を定義）
+     */
+    public function favoriters()
+    {
+        return $this->belongsToMany(Micropost::class, 'user_favorite', 'favorite_id', 'user_id')->withTimestamps();
+    }
+
+
+
+    /**
+     * $userIdで指定されたユーザをフォローする。
+     *
+     * @param  int  $userId
+     * @return bool
+     */
+    public function favorite($userId)
+    {
+        // すでにフォローしているかの確認
+        $exist = $this->is_favoriting($userId);
+        // 相手が自分自身かどうかの確認
+        $its_me = $this->id == $userId;
+
+        if ($exist) {
+            // すでにフォローしていれば何もしない
+            return false;
+        } else {
+            // 未フォローであればフォローする
+            $this->favoritings()->attach($userId);
+            return true;
+        }
+    }
+
+    /**
+     * $userIdで指定されたユーザをアンフォローする。
+     *
+     * @param  int  $userId
+     * @return bool
+     */
+    public function unfavorite($userId)
+    {
+        // すでにフォローしているかの確認
+        $exist = $this->is_favoriting($userId);
+
+        if ($exist) {
+            // すでにフォローしていればフォローを外す
+            $this->favoritings()->detach($userId);
+            return true;
+        } else {
+            // 未フォローであれば何もしない
+            return false;
+        }
+    }
+
+    /**
+     * 指定された $userIdのユーザをこのユーザがフォロー中であるか調べる。フォロー中ならtrueを返す。
+     *
+     * @param  int  $userId
+     * @return bool
+     */
+    public function is_favoriting($userId)
+    {
+        // フォロー中ユーザの中に $userIdのものが存在するか
+        return $this->favoritings()->where('favorite_id', $userId)->exists();
     }
 }
